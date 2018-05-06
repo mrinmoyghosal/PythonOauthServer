@@ -2,7 +2,7 @@
 This is a simple implementation of OAuth2 in Python
 
 
-** INSTALLATION **
+**INSTALLATION**
 
 ```
 
@@ -17,7 +17,7 @@ python app.py
 ```
 
 
-** Data Storage **
+**Data Storage**
 
 I am using MongoMock inmemory mimic MongoDB database. In Production scenario it can be changed based on the requirement.
 
