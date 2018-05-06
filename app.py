@@ -147,11 +147,7 @@ class RestaurentUpdateHandler(BaseHandler):
 
         updateRestaurent(ids,name,address,opens,close)
 
-        resList=[]
-        for res in getRes():
-            print type(res['_id'])
-            resList.append(res)
-        self.finish(dumps(resList))
+        self.finish(dumps({"message":"Successful"}))
 
 
         
