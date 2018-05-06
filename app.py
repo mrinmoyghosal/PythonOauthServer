@@ -14,6 +14,7 @@ import fakeredis
 import mongomock
 from oauth2 import Provider
 from bson.json_util import dumps
+from bson.objectid import ObjectId
 
 
 '''
@@ -26,6 +27,10 @@ mongo = mongomock.MongoClient()
 
 # Getting Restaurent
 getRes=lambda:mongo['db']['restaurent'].find()
+
+def updateRestaurent(id,name,address,opens,close):
+    mongo['db']['restaurent'].find_one_and_update({'_id': ObjectId(id)}, {'$set':{'Name':name,'Address':address,'routine':{'open':opens,'close':close}}}, projection={'_id': False})
+
 
 
 
@@ -102,6 +107,52 @@ class RestaurentHandler(BaseHandler):
             resList.append(res)
         self.finish(dumps(resList))
 
+class RestaurentUpdateHandler(BaseHandler):
+
+    # Authenticated User's View
+
+    def prepare(self):
+        try:
+            token = self.get_argument('access_token', None)
+            if not token:
+                auth_header = self.request.headers.get('Authorization', None)
+                if not auth_header:
+                    raise Exception('This resource need a authorization token')
+                token = auth_header[7:]
+
+            key = 'oauth2_{}'.format(token)
+            access = self.controller.access_token_store.rs.get(key)
+            if access:
+                access = json.loads(access.decode())
+            else:
+                raise Exception('Invalid Token')
+            if access['expires_at'] <= int(time.time()):
+                raise Exception('expired token')
+        except Exception as err:
+
+            # Defaulting to Normal User View
+
+            self.set_header('Content-Type', 'application/json')
+            self.set_status(401)
+            self.finish(json.dumps({'error': str(err)}))
+
+    def get(self):
+
+
+        ids=self.get_argument('id')
+        name=self.get_argument('Name')
+        address=self.get_argument('Address')
+        opens=self.get_argument('open')
+        close=self.get_argument('close')
+
+        updateRestaurent(ids,name,address,opens,close)
+
+        resList=[]
+        for res in getRes():
+            print type(res['_id'])
+            resList.append(res)
+        self.finish(dumps(resList))
+
 
         
 
@@ -156,7 +207,8 @@ def main():
     # Create Tornado application
     app = tornado.web.Application([
         (r'/oauth/token', OAuth2Handler, dict(controller=auth_controller)),
-        (r'/restaurent', RestaurentHandler, dict(controller=auth_controller))
+        (r'/restaurent', RestaurentHandler, dict(controller=auth_controller)),
+        (r'/restaurentUpdate', RestaurentUpdateHandler, dict(controller=auth_controller))
     ])
 
     # Start Server and Listen for Incoming REST Request
