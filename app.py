@@ -103,7 +103,7 @@ class RestaurentHandler(BaseHandler):
     def get(self):
         resList=[]
         for res in getRes():
-            print type(res['_id'])
+            #print type(res['_id'])
             resList.append(res)
         self.finish(dumps(resList))
 
